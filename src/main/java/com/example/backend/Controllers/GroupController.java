@@ -1,0 +1,122 @@
+package com.example.backend.Controllers;
+
+import com.example.backend.entities.Function;
+import com.example.backend.entities.Group;
+import com.example.backend.entities.Module;
+import com.example.backend.services.GroupService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
+@CrossOrigin("*")
+@RequestMapping("/group")
+public class GroupController {
+
+    @Autowired
+    private GroupService groupService;
+
+
+    @PreAuthorize("hasRole('Admin')")
+    @RequestMapping(value="/add",method= RequestMethod.POST,consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> addGroup(@RequestBody Group group) {
+            groupService.addGroup(group);
+            return new ResponseEntity<>(group,HttpStatus.OK);
+        }
+
+    @PreAuthorize("hasRole('Admin')")
+    @RequestMapping(value="/edit/{id}",method= RequestMethod.PUT,consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> editGroup(@RequestBody Group group,@PathVariable Long id) {
+        if(group==null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }else{
+            groupService.editGroup(group,id);
+            return new ResponseEntity<>(group,HttpStatus.OK);
+        }
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @RequestMapping(value = "/list")
+    public List<Group> getGroup(){
+        return groupService.getListGroup();
+    }
+
+    @RequestMapping(value = "/delete/{id}",method = RequestMethod.DELETE)
+    public void delete(@PathVariable Long id){
+        groupService.deleteGroup(id);
+
+    }
+
+
+    @RequestMapping(value = "/{gId}",method=RequestMethod.GET)
+    public Group findById(@PathVariable Long gId){
+        return groupService.findById(gId);
+    }
+
+
+    @RequestMapping(value = "/module/{Id}",method=RequestMethod.GET)
+    public List<Group> findGroupByModule(@PathVariable Long Id){
+        return groupService.findGroupByModule(Id);
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @DeleteMapping("/{groupId}/modules/{moduleId}")
+    public ResponseEntity<Void> removeModuleFromGroup(@PathVariable Long groupId, @PathVariable Long moduleId) {
+        groupService.removeModuleFromGroup(groupId, moduleId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @DeleteMapping("/{groupId}/functions/{functionId}")
+    public ResponseEntity<Void> removeFunctionFromGroup(@PathVariable Long groupId, @PathVariable Long functionId) {
+        groupService.removeFunctionFromGroup(groupId, functionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @GetMapping("/{groupId}/modules")
+    public List<Module> getModulesByGroup(@PathVariable Long groupId) {
+        return groupService.getModulesByGroup(groupId);
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @GetMapping("/{groupId}/Functions")
+    public List<Function> getFunctionsByGroup(@PathVariable Long groupId) {
+        return groupService.getFunctionsByGroup(groupId);
+    }
+
+    @PreAuthorize("hasRole('Admin')")
+    @PostMapping("/{groupId}/modules/{moduleId}")
+    public ResponseEntity<String> assignModuleToGroup(@PathVariable Long groupId, @PathVariable Long moduleId) {
+        try {
+            groupService.assignModuleToGroup(groupId, moduleId);
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while assigning the module to the group");
+        }
+    }
+
+
+    @PreAuthorize("hasRole('Admin')")
+    @PostMapping("/{groupId}/functions/{functionId}")
+    public ResponseEntity<String> assignFunctionToGroup(@PathVariable Long groupId, @PathVariable Long functionId) {
+        try {
+            groupService.assignFunctionToGroup(groupId, functionId);
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while assigning the function to the group");
+        }
+    }
+
+}
