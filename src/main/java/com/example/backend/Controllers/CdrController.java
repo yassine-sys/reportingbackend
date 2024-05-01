@@ -7,16 +7,15 @@ import com.example.backend.entities.*;
 import com.example.backend.services.EtatCollectService;
 import com.example.backend.services.MissingFilesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -267,7 +266,7 @@ public class CdrController {
         }
 
         // Prepare the SQL query
-        String queryStr = "SELECT COUNT(*) FROM cdrs_archives." + tableName + " WHERE networkcallreference = 'detailed'";
+        String queryStr = "SELECT COUNT(*) FROM cdrs_archives." + tableName + " WHERE callduration > 0";
         Query query = entityManager.createNativeQuery(queryStr);
 
         // Execute the query and retrieve the count
@@ -437,4 +436,96 @@ public class CdrController {
         return ResponseEntity.ok(resp);
     }
 
+    @PreAuthorize("hasRole('Admin')")
+    @RequestMapping(value = "/missingFilesRec", method = RequestMethod.GET)
+    public ResponseEntity<List<Object[]>> getMissingFilesRecords() {
+        try {
+            // Execute the query
+            Query query = entityManager.createNativeQuery("SELECT * FROM stat.Stat_Daily_Misisng_files_recon where dur_swt>0 or dur>0 order by date_switch desc");
+            List<Object[]> results = query.getResultList();
+            //List<MissingFilesRec> missingFilesRecDTOs = mapToDTO(results);
+
+            return new ResponseEntity<>(results, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private List<MissingFilesRec> mapToDTO(List<Object[]> results) {
+        List<MissingFilesRec> missingFilesRecDTOs = new ArrayList<>();
+
+        for (Object[] result : results) {
+            MissingFilesRec dto = new MissingFilesRec();
+            dto.setDate_ixtools((String) result[0]);
+            dto.setCdrfilename((String) result[1]);
+            dto.setCdr_countix((Integer) result[2]);
+            dto.setDur((BigDecimal) result[3]);
+            dto.setDate_switch((String) result[4]);
+            dto.setFilename((String) result[5]);
+            dto.setDur_swt((BigDecimal) result[6]);
+            dto.setCdr_countswt((Integer) result[7]);
+
+            missingFilesRecDTOs.add(dto);
+        }
+
+        return missingFilesRecDTOs;
+    }
+
+    @RequestMapping(value = "/margin/{country}/{beginDate}/{endDate}", method = RequestMethod.GET)
+    public ResponseEntity<?> getMargin(@PathVariable(name = "country") String country,
+                                       @PathVariable(name = "beginDate") String beginDate,
+                                       @PathVariable(name = "endDate") String endDate) {
+        String queryString = String.format("SELECT callingnumber,callednumber,networkcallreference,type_call,mscincomingroute,mscoutgoingroute,answertime, callduration,tarif_class,subscription_type,country_name,operator_name,rate,amount,rate_litc,amount_litc,rating_method_madar,rating_method,id_outgoing_operator,id_incoming_operator FROM tab_temp.margin_dynamic_view WHERE country_name = '%s' AND substr(answertime,1,6) >= '%s' AND substr(answertime,1,6) <= '%s';", country, beginDate, endDate);
+        try {
+            List<Object[]> result = entityManager.createNativeQuery(queryString).getResultList();
+            if (result == null || result.isEmpty()) {
+                // Return an empty object or list, as appropriate
+                return ResponseEntity.ok().body(new Object[]{});
+            }
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("error");
+        }
+    }
+
+    //almadar
+    @RequestMapping(value = "/map/{startDate}/{endDate}/{typeCall}/{order}/{limit}/{typeCdr}", method = RequestMethod.GET)
+    public List<MapInfoDTO> getMapInfo(@PathVariable(name = "startDate") String startDate,
+                                       @PathVariable(name = "endDate") String endDate,
+                                       @PathVariable(name = "typeCall") String typeCall,
+                                       @PathVariable(name = "order") String order,
+                                       @PathVariable(name = "limit") Integer limit,
+                                       @PathVariable(name = "typeCdr") String typeCdr) {
+        String tablename="";
+        if(typeCdr.equals("natroa")){
+            tablename = "stat.stat_msc_location";
+        }else{
+            tablename = "stat.msc_location_not_roa";
+        }
+        return etatCollectService.getMapInfo( startDate, endDate, typeCall, order,limit,typeCdr,tablename);
+    }
+
+
+    //libyana
+    @RequestMapping(value = "/maps/{startDate}/{endDate}/{typeCall}/{order}/{limit}/{typeCdr}", method = RequestMethod.GET)
+    public List<MapInfoDTO> getMapInfoV2(@PathVariable(name = "startDate") String startDate,
+                                       @PathVariable(name = "endDate") String endDate,
+                                       @PathVariable(name = "typeCall") String typeCall,
+                                       @PathVariable(name = "order") String order,
+                                         @PathVariable(name = "limit") String limitStr,
+                                         @PathVariable(name = "typeCdr") String typeCdr) {
+
+        Integer limit;
+        if ("null".equalsIgnoreCase(limitStr)) {
+            limit = -1; // Set limit to -1 when "null" is passed
+        } else {
+            limit = Integer.parseInt(limitStr);
+        }
+        return etatCollectService.getMapInfoV2( startDate, endDate, typeCall, order,limit,typeCdr);
+    }
+
+
+
 }
+
+

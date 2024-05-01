@@ -144,6 +144,11 @@ public class Group implements Serializable {
         this.liste_function = liste_function;
     }
 
+    public void addFunction(Function function) {
+        liste_function.add(function);
+        function.getGroup().add(this);
+    }
+
     public Group(Long gId, String gName, String gDescription, Date dateCreation, Date dateModif, Long idCreateur, String nomUtilisateur, String etat, List<User> groupUsers, List<Module> module_groups,List<Function> liste_function) {
         this.gId = gId;
         this.gName = gName;

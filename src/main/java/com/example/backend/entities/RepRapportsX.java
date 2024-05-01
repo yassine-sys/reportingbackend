@@ -86,6 +86,14 @@ public class RepRapportsX implements Serializable {
 		this.table_join = table_join;
 	}
 
+	public String getFiltre() {
+		return Filtre;
+	}
+
+	public void setFiltre(String filtre) {
+		Filtre = filtre;
+	}
+
 	// bi-directional many-tno-one association to RepRapport
 	@ManyToOne
 	@JoinColumn(name = "id_rapport")

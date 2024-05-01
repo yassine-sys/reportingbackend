@@ -12,13 +12,21 @@ public class EtatCollect {
     private Integer nbfileprocessed;
     private Integer nbfilecorrupted;
     private Integer average;
-//    private String frequency ;
+    private String frequency ;
     private  String name_rep;
 
     public EtatCollect() {
     }
 
-    public EtatCollect(String date, String name_flow, Integer nbfiles, Integer nbrecord, Integer nbfileprocessed, Integer nbfilecorrupted, Integer average,String frequency,String name_rep) {
+    public String getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(String frequency) {
+        this.frequency = frequency;
+    }
+
+    public EtatCollect(String date, String name_flow, Integer nbfiles, Integer nbrecord, Integer nbfileprocessed, Integer nbfilecorrupted, Integer average, String frequency, String name_rep) {
         this.date = date;
         this.name_flow = name_flow;
         this.nbfiles = nbfiles;
@@ -26,7 +34,7 @@ public class EtatCollect {
         this.nbfileprocessed = nbfileprocessed;
         this.nbfilecorrupted = nbfilecorrupted;
         this.average = average;
-//        this.frequency = frequency;
+        this.frequency = frequency;
         this.name_rep = name_rep;
     }
 

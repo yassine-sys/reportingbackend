@@ -82,8 +82,40 @@ public class RepRapport implements Serializable {
 	@JsonIgnore
 	private List<PlaylistReport> playlistReports;
 
+	private boolean isoperator;
+	private boolean load;
+	private  boolean isnested;
+	private  boolean iscaracter;
+	private boolean isdiff;
+	private boolean hasdetails;
+	private boolean hasdate;
+
 
 	public RepRapport() {
+	}
+
+	public Boolean getDetails() {
+		return isDetails;
+	}
+
+	public void setDetails(Boolean details) {
+		isDetails = details;
+	}
+
+	public boolean isIslimited() {
+		return islimited;
+	}
+
+	public void setIslimited(boolean islimited) {
+		this.islimited = islimited;
+	}
+
+	public Integer getLimitnumber() {
+		return limitnumber;
+	}
+
+	public void setLimitnumber(Integer limitnumber) {
+		this.limitnumber = limitnumber;
 	}
 
 	public Long getId() {
@@ -320,5 +352,61 @@ public class RepRapport implements Serializable {
 
 	public void setPlaylistReports(List<PlaylistReport> playlistReports) {
 		this.playlistReports = playlistReports;
+	}
+
+	public boolean isIsoperator() {
+		return isoperator;
+	}
+
+	public void setIsoperator(boolean isoperator) {
+		this.isoperator = isoperator;
+	}
+
+	public boolean isLoad() {
+		return load;
+	}
+
+	public void setLoad(boolean load) {
+		this.load = load;
+	}
+
+	public boolean isIsnested() {
+		return isnested;
+	}
+
+	public void setIsnested(boolean isnested) {
+		this.isnested = isnested;
+	}
+
+	public boolean isIscaracter() {
+		return iscaracter;
+	}
+
+	public void setIscaracter(boolean iscaracter) {
+		this.iscaracter = iscaracter;
+	}
+
+	public boolean isIsdiff() {
+		return isdiff;
+	}
+
+	public void setIsdiff(boolean isdiff) {
+		this.isdiff = isdiff;
+	}
+
+	public boolean isHasdetails() {
+		return hasdetails;
+	}
+
+	public void setHasdetails(boolean hasdetails) {
+		this.hasdetails = hasdetails;
+	}
+
+	public boolean isHasdate() {
+		return hasdate;
+	}
+
+	public void setHasdate(boolean hasdate) {
+		this.hasdate = hasdate;
 	}
 }

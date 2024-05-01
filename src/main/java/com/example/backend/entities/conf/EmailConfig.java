@@ -14,10 +14,23 @@ public class EmailConfig {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
         // Configure the mail sender properties
-        mailSender.setHost("Mail.almadar.ly");
-        mailSender.setPort(25);
-        mailSender.setUsername("raftools@almadar.ly");
-        mailSender.setPassword("M#dar@1223");
+        //Almadar
+//        mailSender.setHost("Mail.almadar.ly");
+//        mailSender.setPort(25);
+//        mailSender.setUsername("raftools@almadar.ly");
+//        mailSender.setPassword("M#dar@1223");
+
+        //dowaleya
+//        mailSender.setHost("smtp.office365.com");
+//        mailSender.setPort(587);
+//        mailSender.setUsername("raftool@litc.ly");
+//        mailSender.setPassword("%R^T5r6t");
+
+        //soutelma
+        mailSender.setHost("mail.sotelma.ml");
+        mailSender.setPort(587);
+        mailSender.setUsername("raftools@sotelma.ml");
+        mailSender.setPassword("R@ft00l24");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");

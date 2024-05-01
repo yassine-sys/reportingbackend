@@ -2,17 +2,15 @@ package com.example.backend.Controllers;
 
 import com.example.backend.dao.LogRepository;
 import com.example.backend.entities.*;
-import com.example.backend.entities.DTOResp.FunctionDTo;
-import com.example.backend.entities.DTOResp.ModuleDTO;
-import com.example.backend.entities.DTOResp.SubModuleDTO;
+import com.example.backend.entities.DTOResp.*;
 import com.example.backend.entities.Module;
 import com.example.backend.entities.conf.JwtTokenUtil;
-import com.example.backend.services.ModuleService;
-import com.example.backend.services.PasswordResetServiceImpl;
-import com.example.backend.services.SubModuleService;
-import com.example.backend.services.UserService;
+import com.example.backend.services.*;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +20,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +49,9 @@ public class AuthenticationController {
 
     @Autowired
     private PasswordResetServiceImpl passwordResetService;
+
+    @Autowired
+    private CaptchaService captchaService;
     private String tokenResp;
     private Optional<User> userResp;
     @Autowired
@@ -98,23 +102,40 @@ public class AuthenticationController {
 
     @RequestMapping(value="/check", method = RequestMethod.GET)
     @Transactional
-    public ResponseEntity<?> test(@RequestParam(name = "token") String token) {
-        if(token!=null){
-            final User user = jwtTokenUtil.extractUser(token);
-            final String username = jwtTokenUtil.getUsernameFromToken(token);
-            final Optional<User> u = userService.findByUsername(username);
-            if(username.equals(u.get().getUsername()) && !jwtTokenUtil.isTokenExpired(token)) {
-                return ResponseEntity.ok(true);
-
-            }else {
-                return ResponseEntity.ok(false);
+    public ResponseEntity<TokenValidity> test(@RequestParam(name = "token") String token) {
+        TokenValidity validity = new TokenValidity();
+        validity.setValid(false);
+        if (token != null) {
+            try {
+                final User user = jwtTokenUtil.extractUser(token);
+                final String username = jwtTokenUtil.getUsernameFromToken(token);
+                final Optional<User> u = userService.findByUsername(username);
+                if (username.equals(u.get().getUsername())) {
+                    if (!jwtTokenUtil.isTokenExpired(token)) {
+                        // Token is valid and not expired
+                        validity.setValid(true);
+                        validity.setRole(u.get().getRole());
+                        return ResponseEntity.ok(validity);
+                    } else {
+                        // Token is expired
+                        return ResponseEntity.ok(validity);
+                    }
+                } else {
+                    // Username in token does not match user retrieved from database
+                    return ResponseEntity.ok(validity);
+                }
+            } catch (ExpiredJwtException ex) {
+                // Token has expired
+                return ResponseEntity.ok(validity);
+            } catch (Exception ex) {
+                // Other exceptions occurred
+                return ResponseEntity.ok(validity);
             }
-        }else{
-            return ResponseEntity.ok(false);
+        } else {
+            // Token is null
+            return ResponseEntity.ok(validity);
         }
-
     }
-
 
     @RequestMapping(value = "/loginResp", method = RequestMethod.GET)
     @Transactional(readOnly = true)  // Set readOnly to true for fetching data only
@@ -133,8 +154,8 @@ public class AuthenticationController {
             sortedUser.setuMail(user.get().getuMail());
             sortedUser.setNomUtilisateur(user.get().getNomUtilisateur());
             sortedUser.setRole(user.get().getRole());
-            sortedUser.setUser_group(user.get().getUser_group());
-            sortedUser.getUser_group().setModule_groups(sortedModules);
+            //sortedUser.setUser_group(user.get().getUser_group());
+            //sortedUser.getUser_group().setModule_groups(sortedModules);
 
             return sortedUser;
         } else {
@@ -184,6 +205,20 @@ public class AuthenticationController {
                                 functionDTO.setId(function.getId());
                                 functionDTO.setFunctionName(function.getFunctionName());
                                 functionDTO.setOrder(function.getOrder()); // Set order in DTO
+
+                                // Map listeReports
+                                List<ReportDTO> reportDTOs = function.getListreprapport().stream().map(report -> {
+                                    ReportDTO reportDTO = new ReportDTO();
+                                    // Assuming ReportDTO has similar structure, map the necessary fields
+                                    reportDTO.setId(report.getId());
+                                    reportDTO.setName(report.getName());
+                                    reportDTO.setTitle(report.getTitle());
+                                    // Add more mappings as needed
+                                    return reportDTO;
+                                }).collect(Collectors.toList());
+
+                                functionDTO.setListeReports(reportDTOs); // Assign the mapped report DTOs
+
                                 return functionDTO;
                             })
                             .collect(Collectors.toList());
@@ -266,6 +301,56 @@ public class AuthenticationController {
         // Call the service to update the pass
         userService.updatePass(request);
         return ResponseEntity.ok("Password updated successfully");
+    }
+
+    private Map<String, String> captchaStore = new HashMap<>();
+    @GetMapping(value = "/captcha")
+    public ResponseEntity<?> getCaptcha() {
+        String captchaText = generateRandomText(6);
+        String captchaKey = Long.toString(System.nanoTime()); // Simple key generation strategy
+        captchaStore.put(captchaKey, captchaText);
+
+        BufferedImage captchaImage = captchaService.generateCaptchaImage(captchaText);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(captchaImage, "png", baos);
+            byte[] imageBytes = baos.toByteArray();
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+            // Prepare the response object
+            Map<String, String> response = new HashMap<>();
+            response.put("captchaKey", captchaKey);
+            response.put("captchaImage", base64Image);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // Handle exception
+            return ResponseEntity.badRequest().body("Failed to generate CAPTCHA");
+        }
+    }
+
+    private String generateRandomText(int length) {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder captchaText = new StringBuilder();
+        Random rnd = new Random();
+        while (captchaText.length() < length) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * chars.length());
+            captchaText.append(chars.charAt(index));
+        }
+        return captchaText.toString();
+    }
+
+    @PostMapping("/validate-captcha")
+    public ResponseEntity<?> validateCaptcha(@RequestBody Map<String, String> captchaResponse) {
+        String captchaKey = captchaResponse.get("key");
+        String captchaValue = captchaResponse.get("value");
+
+        if (captchaValue != null && captchaValue.equals(captchaStore.get(captchaKey))) {
+            captchaStore.remove(captchaKey); // Remove captcha from store after successful validation
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Captcha validation failed");
+        }
     }
 }
 

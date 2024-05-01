@@ -175,7 +175,8 @@ public class GroupServiceImp implements GroupService{
 
         Function fct = functionRepository.findById(functionId).orElseThrow(() -> new EntityNotFoundException("fonction not found"));
 
-        group.getListe_function().add(fct);
+        //group.getListe_function().add(fct);
+        group.addFunction(fct);
         groupRepository.save(group);
 
     }

@@ -37,6 +37,7 @@ public class FunctionServiceImp implements FunctionService{
 
     @Override
     public Function addFunction(Function f) {
+        f.setOrder(1);
         return funcRepo.save(f);
     }
 

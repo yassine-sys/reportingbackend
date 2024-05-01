@@ -63,6 +63,7 @@ public class UserServiceImp implements UserService, UserDetailsService {
 
     }
     public User addUser(User user,Long idGrp) {
+        System.out.println("===============>password 3: "+user.getPassword());
         // Check if the role exists
         if (user.getRole() == null || user.getRole().getId() == null) {
             throw new IllegalArgumentException("Role ID must not be null");
@@ -71,7 +72,9 @@ public class UserServiceImp implements UserService, UserDetailsService {
         if (!role.isPresent()) {
             throw new IllegalArgumentException("Role not found");
         }
-       Group grp = grpServ.findById(idGrp);
+        Group grp = grpServ.findById(idGrp);
+        System.out.println("id grp==========>"+idGrp);
+        System.out.println("id grp2==========>"+grp.getgId());
         user.setUser_group(grp);
         user.setRole(role.get());
         return userRepository.save(user);

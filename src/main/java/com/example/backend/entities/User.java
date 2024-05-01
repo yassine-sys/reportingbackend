@@ -1,6 +1,7 @@
 package com.example.backend.entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
@@ -67,13 +68,13 @@ public class User implements Serializable {
     @ManyToOne(cascade = CascadeType.DETACH)
     @JoinColumn(name = "g_id", referencedColumnName = "g_id")
     @LazyCollection(LazyCollectionOption.FALSE)
-    @JsonIgnore
+    //@JsonIgnore
     private Group user_group;
 
     @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(name = "repports_users", joinColumns = @JoinColumn(name = "user_id") , inverseJoinColumns = @JoinColumn(name = "list_rep_id") , schema = "management")
     @LazyCollection(LazyCollectionOption.FALSE)
-    @JsonIgnore
+    //@JsonIgnore
     private List<RepRapport> listreprapport ;
 
     @JsonIgnore
@@ -175,6 +176,7 @@ public class User implements Serializable {
         this.uMatricule = uMatricule;
     }
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public String getPassword() {
         return password;
     }

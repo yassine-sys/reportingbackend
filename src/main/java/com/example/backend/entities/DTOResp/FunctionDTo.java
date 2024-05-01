@@ -1,9 +1,12 @@
 package com.example.backend.entities.DTOResp;
 
+import java.util.List;
+
 public class FunctionDTo {
     private Long id;
     private String functionName;
 
+    List<ReportDTO> listeReports;
     private Integer order;
 
 
@@ -29,5 +32,13 @@ public class FunctionDTo {
 
     public void setOrder(Integer order) {
         this.order = order;
+    }
+
+    public List<ReportDTO> getListeReports() {
+        return listeReports;
+    }
+
+    public void setListeReports(List<ReportDTO> listeReports) {
+        this.listeReports = listeReports;
     }
 }

@@ -8,6 +8,7 @@ import com.example.backend.entities.UserUpdateRequest;
 import com.example.backend.services.UserService;
 import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @CrossOrigin("*")
@@ -50,13 +48,25 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('Admin')")
-    @RequestMapping(value="/add/{id}",method=RequestMethod.POST,consumes = MediaType.APPLICATION_JSON_VALUE)
-    public void addUtilisateur(@RequestBody User user,@PathVariable Long id) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        //user.setAdmin(user.isAdmin());
-        //System.out.println(user.getRole().getRole().toString());
-        userService.addUser(user,id);
+    @RequestMapping(value="/add/{id}", method=RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> addUtilisateur(@RequestBody User user, @PathVariable Long id) {
+        try {
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            userService.addUser(user, id);
+            return ResponseEntity.ok().body(new HashMap<String, String>() {{
+                put("message", "User added successfully");
+            }});
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new HashMap<String, String>() {{
+                put("error", e.getMessage());
+            }});
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new HashMap<String, String>() {{
+                put("error", e.getMessage());
+            }});
+        }
     }
+
     @PreAuthorize("hasRole('Admin')")
     @RequestMapping(value="/edit/{idGrp}", method=RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public void editUtilisateur(@RequestBody User user, @PathVariable Long idGrp) {
