@@ -11,6 +11,8 @@ public class RapportDTO {
     private RepRappotDTO rep_rapport;
     private List<RepRapportXDTO> rep_rapports_x;
 
+    private FiltreDTO filtre;
+
     public RapportDTO() {
     }
 
@@ -44,5 +46,13 @@ public class RapportDTO {
 
     public void setRep_rapports_x(List<RepRapportXDTO> rep_rapports_x) {
         this.rep_rapports_x = rep_rapports_x;
+    }
+
+    public FiltreDTO getFiltre() {
+        return filtre;
+    }
+
+    public void setFiltre(FiltreDTO filtre) {
+        this.filtre = filtre;
     }
 }

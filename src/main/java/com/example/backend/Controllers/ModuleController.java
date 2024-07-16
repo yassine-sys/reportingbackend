@@ -38,7 +38,7 @@ public class ModuleController {
         }
     }
 
-    @PreAuthorize("hasRole('Admin')")
+  //  @PreAuthorize("hasRole('Admin')")
     @RequestMapping(value = "/list")
     public List<Module> getModule(){
         return moduleService.getListModule();

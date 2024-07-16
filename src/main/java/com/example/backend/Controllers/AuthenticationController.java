@@ -54,6 +54,8 @@ public class AuthenticationController {
     private CaptchaService captchaService;
     private String tokenResp;
     private Optional<User> userResp;
+
+
     @Autowired
     public AuthenticationController(LogRepository logsRepository) {
         this.logsRepository = logsRepository;

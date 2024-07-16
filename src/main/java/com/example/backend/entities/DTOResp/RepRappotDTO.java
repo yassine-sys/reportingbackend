@@ -33,18 +33,22 @@ public class RepRappotDTO {
     private boolean hasDetails;
     private boolean hasDate;
 
+
+
     public RepRappotDTO() {
     }
 
-    public String getChartType() {
-        return chart_type;
-    }
 
-    public void setChartType(String chartType) {
-        this.chart_type = chartType;
-    }
 
-    public String getName() {
+    public String getChart_type() {
+    return chart_type;
+  }
+
+  public void setChart_type(String chart_type) {
+    this.chart_type = chart_type;
+  }
+
+  public String getName() {
         return name;
     }
 
